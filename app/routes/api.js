@@ -17,7 +17,6 @@ function createToken(user){
 		expiresInMinute: 1440
 	});
 
-
 	return token;
 }
 
@@ -85,6 +84,35 @@ module.exports = function(app, express){
 			}
 		});
 	});
+
+
+	//check to see if user is already logged in!
+	api.use(function(req, res, next){
+		console.log('Somebody just came to our app!');
+		var token = req.body.token || req.param('token') || req.headers['x-access-token'];
+
+		// check if token exists
+		if(token){
+			jsonwebtoken.verify(token, secretKey, function(err, decoded){
+				if(err) {
+					res.status(403).send({success: false, message: 'Failed to authenticate user!'})
+				} else {
+					req.decoded = decoded;
+					next();
+				}
+			});
+		} else {
+			res.status(403).send({success: false, message: 'No token provided!'});
+
+		}
+	});
+
+	
+	api.get('/', function(req, res){
+		res.json('Hello World!');
+
+	})
+
 
 
 	return api;
